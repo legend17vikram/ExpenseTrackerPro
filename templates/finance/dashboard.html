@@ -1,0 +1,390 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Overview{% endblock %}
+
+{% block content %}
+<!-- Welcome Header -->
+<div class="row align-items-center mb-4">
+    <div class="col-md-8">
+        <h3 class="text-white font-bold mb-1">Hello, {{ name }}!</h3>
+        <p class="text-muted small mb-0">Here is your financial health summary and budget tracking details.</p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <span class="text-muted small me-2">Base Currency:</span>
+        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-20 px-3 py-2 font-bold" style="font-size: 0.85rem;">
+            {{ user.profile.currency }}
+        </span>
+    </div>
+</div>
+
+<!-- Budget Exceed Warning Alert -->
+{% if budget_warning %}
+<div class="alert alert-danger bg-danger bg-opacity-10 border-danger border-opacity-20 text-danger alert-dismissible fade show mb-4" role="alert">
+    <i class="fa-solid fa-triangle-exclamation me-2"></i>
+    <strong>Warning:</strong> Your total expenses for this month ({{ user.profile.currency }} {{ monthly_expense }}) have exceeded your configured monthly budget limit of {{ user.profile.currency }} {{ monthly_budget }}!
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
+
+<!-- Budget Forecast Warning Alert -->
+{% if forecast_warning %}
+<div class="alert alert-warning bg-warning bg-opacity-10 border-warning border-opacity-20 text-warning alert-dismissible fade show mb-4" role="alert">
+    <i class="fa-solid fa-calculator me-2"></i>
+    <strong>Budget Forecast Warning:</strong> Based on your spending over the previous 3 months, your projected expenses for this month are estimated to be **{{ user.profile.currency }} {{ forecast_amount }}**, which exceeds your set budget limit of {{ user.profile.currency }} {{ monthly_budget }}!
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
+
+<!-- KPI Stats Row -->
+<div class="row">
+    <!-- Balance Card -->
+    <div class="col-xl-3 col-sm-6 mb-4">
+        <div class="card-custom h-100 mb-0">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <span class="text-muted small uppercase font-semibold">Net Balance</span>
+                <div class="d-inline-flex bg-success bg-opacity-10 p-2 rounded-lg text-success">
+                    <i class="fa-solid fa-scale-balanced"></i>
+                </div>
+            </div>
+            <h3 class="text-white font-bold mb-1">
+                {{ user.profile.currency }} {{ current_balance|floatformat:2 }}
+            </h3>
+            <span class="text-xs text-muted">All-time wallet balance</span>
+        </div>
+    </div>
+    
+    <!-- Income Card -->
+    <div class="col-xl-3 col-sm-6 mb-4">
+        <div class="card-custom h-100 mb-0">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <span class="text-muted small uppercase font-semibold">Monthly Income</span>
+                <div class="d-inline-flex bg-success bg-opacity-10 p-2 rounded-lg text-success">
+                    <i class="fa-solid fa-arrow-trend-up"></i>
+                </div>
+            </div>
+            <h3 class="text-success font-bold mb-1">
+                +{{ user.profile.currency }} {{ monthly_income|floatformat:2 }}
+            </h3>
+            <span class="text-xs text-muted">Earnings this month</span>
+        </div>
+    </div>
+
+    <!-- Expenses Card -->
+    <div class="col-xl-3 col-sm-6 mb-4">
+        <div class="card-custom h-100 mb-0">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <span class="text-muted small uppercase font-semibold">Monthly Spending</span>
+                <div class="d-inline-flex bg-danger bg-opacity-10 p-2 rounded-lg text-danger">
+                    <i class="fa-solid fa-arrow-trend-down"></i>
+                </div>
+            </div>
+            <h3 class="text-danger font-bold mb-1">
+                -{{ user.profile.currency }} {{ monthly_expense|floatformat:2 }}
+            </h3>
+            <span class="text-xs text-muted">Expenses this month</span>
+        </div>
+    </div>
+
+    <!-- Budget Card -->
+    <div class="col-xl-3 col-sm-6 mb-4">
+        <div class="card-custom h-100 mb-0">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <span class="text-muted small uppercase font-semibold">Remaining Budget</span>
+                <div class="d-inline-flex {% if remaining_budget < 0 %}bg-danger bg-opacity-10 text-danger{% else %}bg-primary bg-opacity-10 text-primary{% endif %} p-2 rounded-lg">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+            </div>
+            <h3 class="{% if remaining_budget < 0 %}text-danger{% else %}text-white{% endif %} font-bold mb-1">
+                {{ user.profile.currency }} {{ remaining_budget|floatformat:2 }}
+            </h3>
+            <span class="text-xs text-muted">
+                Limit: {{ user.profile.currency }} {{ monthly_budget|floatformat:2 }}
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Charts & Data Visualization Section -->
+<div class="row">
+    <!-- Daily Spending Trend (Line Chart) -->
+    <div class="col-lg-8 mb-4">
+        <div class="card-custom h-100 mb-0">
+            <h5 class="text-white font-bold mb-4">
+                <i class="fa-solid fa-chart-line text-success me-2"></i>Daily Expense Trend
+            </h5>
+            <div style="height: 300px; position: relative;">
+                <canvas id="dailyExpenseChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Distribution (Donut Chart) -->
+    <div class="col-lg-4 mb-4">
+        <div class="card-custom h-100 mb-0">
+            <h5 class="text-white font-bold mb-4">
+                <i class="fa-solid fa-circle-nodes text-primary me-2"></i>Category Breakdown
+            </h5>
+            <div style="height: 300px; position: relative;" class="d-flex align-items-center justify-content-center">
+                {% if category_data %}
+                    <canvas id="categoryChart"></canvas>
+                {% else %}
+                    <div class="text-center text-muted small py-5">
+                        <i class="fa-solid fa-chart-pie fs-1 mb-3"></i>
+                        <p>No category spending data available for this month.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Income vs Expense 6 Month History (Bar Chart) -->
+    <div class="col-lg-8 mb-4">
+        <div class="card-custom h-100 mb-0">
+            <h5 class="text-white font-bold mb-4">
+                <i class="fa-solid fa-chart-column text-info me-2"></i>Income vs Expense Overview
+            </h5>
+            <div style="height: 300px; position: relative;">
+                <canvas id="monthlyComparisonChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Highlights Card -->
+    <div class="col-lg-4 mb-4">
+        <div class="card-custom h-100 mb-0 d-flex flex-column justify-content-between">
+            <div>
+                <h5 class="text-white font-bold mb-4">
+                    <i class="fa-solid fa-magnifying-glass-chart text-warning me-2"></i>Financial Insights
+                </h5>
+                
+                <!-- Highest Category -->
+                <div class="mb-4 d-flex align-items-center">
+                    <div class="d-inline-flex bg-danger bg-opacity-10 text-danger p-3 rounded-lg me-3" style="font-size: 1.3rem; width: 50px; height: 50px; justify-content: center; align-items: center;">
+                        <i class="fa-solid fa-fire-flame-simple"></i>
+                    </div>
+                    <div>
+                        <span class="text-muted small uppercase font-semibold d-block">Highest Spending Category</span>
+                        <h6 class="text-white font-bold mb-0">
+                            {{ highest_category }} 
+                            <span class="text-danger small font-semibold">({{ user.profile.currency }} {{ highest_category_amount }})</span>
+                        </h6>
+                    </div>
+                </div>
+
+                <!-- Daily Average -->
+                <div class="mb-4 d-flex align-items-center">
+                    <div class="d-inline-flex bg-success bg-opacity-10 text-success p-3 rounded-lg me-3" style="font-size: 1.3rem; width: 50px; height: 50px; justify-content: center; align-items: center;">
+                        <i class="fa-solid fa-calculator"></i>
+                    </div>
+                    <div>
+                        <span class="text-muted small uppercase font-semibold d-block">Average Daily Spending</span>
+                        <h6 class="text-white font-bold mb-0">
+                            {{ user.profile.currency }} {{ avg_daily_spending|floatformat:2 }}
+                        </h6>
+                    </div>
+                </div>
+
+                <!-- Budget Forecast -->
+                <div class="mb-4 d-flex align-items-center">
+                    <div class="d-inline-flex bg-primary bg-opacity-10 text-primary p-3 rounded-lg me-3" style="font-size: 1.3rem; width: 50px; height: 50px; justify-content: center; align-items: center;">
+                        <i class="fa-solid fa-chart-simple"></i>
+                    </div>
+                    <div>
+                        <span class="text-muted small uppercase font-semibold d-block">Projected Spend (3M SMA)</span>
+                        <h6 class="text-white font-bold mb-0">
+                            {{ user.profile.currency }} {{ forecast_amount }}
+                            {% if forecast_warning %}
+                                <span class="text-danger small font-semibold ms-1" style="font-size: 0.75rem;"><i class="fa-solid fa-caret-up"></i> Exceeds Budget</span>
+                            {% else %}
+                                <span class="text-success small font-semibold ms-1" style="font-size: 0.75rem;"><i class="fa-solid fa-check"></i> On Track</span>
+                            {% endif %}
+                        </h6>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fast-Actions -->
+            <div class="mt-4 pt-3 border-t border-secondary border-opacity-10 d-grid gap-2">
+                <a href="{% url 'expense_create' %}" class="btn btn-danger-custom text-center">
+                    <i class="fa-solid fa-plus me-1.5"></i>Add Expense Record
+                </a>
+                <a href="{% url 'income_create' %}" class="btn btn-success-custom text-center">
+                    <i class="fa-solid fa-plus me-1.5"></i>Log Inflow Earnings
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Transactions Table -->
+    <div class="col-12 mb-4">
+        <div class="card-custom mb-0">
+            <h5 class="text-white font-bold mb-4">
+                <i class="fa-solid fa-clock-rotate-left text-success me-2"></i>Recent Transactions
+            </h5>
+            
+            {% if recent_transactions %}
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead>
+                            <tr class="text-muted small uppercase font-semibold">
+                                <th>Date</th>
+                                <th>Description / Source</th>
+                                <th>Category / Type</th>
+                                <th class="text-end">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for t in recent_transactions %}
+                                <tr>
+                                    <td>{{ t.date|date:"M d, Y" }}</td>
+                                    {% if t.type == 'income' %}
+                                        <td class="text-white font-medium">{{ t.object.source }}</td>
+                                        <td>
+                                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-10 px-2 py-1">
+                                                Income
+                                            </span>
+                                        </td>
+                                        <td class="text-end text-success font-bold">+{{ user.profile.currency }} {{ t.object.amount }}</td>
+                                    {% else %}
+                                        <td class="text-white font-medium">{{ t.object.description|default:"-" }}</td>
+                                        <td>
+                                            <span class="badge bg-opacity-10 px-2 py-1 border" style="background-color: rgba(59, 130, 246, 0.1); color: var(--secondary-blue); border-color: rgba(59, 130, 246, 0.2);">
+                                                <i class="fa-solid {{ t.object.category.icon|default:'fa-tag' }} me-1.5"></i>{{ t.object.category.name|default:"Uncategorized" }}
+                                            </span>
+                                        </td>
+                                        <td class="text-end text-danger font-bold">-{{ user.profile.currency }} {{ t.object.amount }}</td>
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-4 text-muted small">
+                    <i class="fa-solid fa-folder-open fs-2 mb-3"></i>
+                    <p class="mb-0">No transactions recorded yet.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // General configurations
+    const gridColor = '#1f2937';
+    const textColor = '#9ca3af';
+
+    // 1. Daily Expenses Trend (Line Chart)
+    const dailyCtx = document.getElementById('dailyExpenseChart').getContext('2d');
+    new Chart(dailyCtx, {
+        type: 'line',
+        data: {
+            labels: {{ daily_trend_labels|safe }},
+            datasets: [{
+                label: 'Expenses',
+                data: {{ daily_trend_data|safe }},
+                borderColor: '#ef4444',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: {
+                    grid: { color: gridColor },
+                    ticks: { color: textColor }
+                },
+                y: {
+                    grid: { color: gridColor },
+                    ticks: { color: textColor }
+                }
+            }
+        }
+    });
+
+    // 2. Category Distribution (Pie Chart)
+    {% if category_data %}
+    const catCtx = document.getElementById('categoryChart').getContext('2d');
+    new Chart(catCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ category_labels|safe }},
+            datasets: [{
+                data: {{ category_data|safe }},
+                backgroundColor: [
+                    '#3b82f6', '#22c55e', '#ef4444', '#eab308', 
+                    '#a855f7', '#ec4899', '#14b8a6', '#f97316', '#6b7280'
+                ],
+                borderWidth: 1,
+                borderColor: '#1f2937'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: { color: '#f3f4f6' }
+                }
+            }
+        }
+    });
+    {% endif %}
+
+    // 3. Monthly Income vs Expenses Comparison (Bar Chart)
+    const monthlyCtx = document.getElementById('monthlyComparisonChart').getContext('2d');
+    new Chart(monthlyCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ six_months_labels|safe }},
+            datasets: [
+                {
+                    label: 'Income',
+                    data: {{ six_months_income|safe }},
+                    backgroundColor: '#22c55e',
+                    borderRadius: 4
+                },
+                {
+                    label: 'Expenses',
+                    data: {{ six_months_expense|safe }},
+                    backgroundColor: '#ef4444',
+                    borderRadius: 4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: { color: '#f3f4f6' }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { color: gridColor },
+                    ticks: { color: textColor }
+                },
+                y: {
+                    grid: { color: gridColor },
+                    ticks: { color: textColor }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

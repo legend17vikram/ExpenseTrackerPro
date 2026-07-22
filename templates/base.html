@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExpenseTracker Pro | {% block title %}Management{% endblock %}</title>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome 6 Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-slate: #111827;
+            --card-bg: #1f2937;
+            --primary-green: #22c55e;
+            --secondary-blue: #3b82f6;
+            --danger-red: #ef4444;
+            --border-color: #374151;
+            --text-light: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-slate);
+            color: var(--text-light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar styles */
+        .sidebar {
+            width: 250px;
+            background-color: var(--card-bg);
+            border-right: 1px solid var(--border-color);
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding-top: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .sidebar .nav-link {
+            color: var(--text-muted);
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-radius: 8px;
+            margin: 0.2rem 1rem;
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            color: var(--text-light);
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar .nav-link.active {
+            color: var(--primary-green);
+            background-color: rgba(34, 197, 94, 0.1);
+        }
+
+        /* Main content wrapper */
+        .main-content {
+            margin-left: 250px;
+            padding: 2rem;
+            flex: 1;
+        }
+
+        /* Cards styling */
+        .card-custom {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            margin-bottom: 1.5rem;
+        }
+
+        /* Inputs configuration */
+        .form-control, .form-select, input[type="text"], input[type="password"], input[type="email"], select, textarea {
+            background-color: var(--bg-slate) !important;
+            border: 1px solid var(--border-color) !important;
+            color: var(--text-light) !important;
+            border-radius: 8px !important;
+            padding: 0.6rem 0.9rem !important;
+        }
+
+        .form-control:focus, .form-select:focus, input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus, select:focus, textarea:focus {
+            background-color: var(--bg-slate) !important;
+            border-color: var(--primary-green) !important;
+            color: var(--text-light) !important;
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25) !important;
+            outline: none !important;
+        }
+
+        /* Text readability overrides */
+        .text-muted, .form-text {
+            color: var(--text-muted) !important;
+        }
+
+        /* Table overrides for dark theme */
+        .table {
+            color: var(--text-light) !important;
+            --bs-table-bg: transparent !important;
+            --bs-table-border-color: var(--border-color) !important;
+            border-color: var(--border-color) !important;
+        }
+        .table td, .table th {
+            background-color: transparent !important;
+            color: var(--text-light) !important;
+            border-bottom-color: var(--border-color) !important;
+        }
+
+        /* Standard buttons */
+        .btn-success-custom {
+            background-color: var(--primary-green);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 0.6rem 1.2rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-success-custom:hover {
+            background-color: #16a34a;
+            transform: translateY(-1px);
+        }
+
+        .btn-danger-custom {
+            background-color: var(--danger-red);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 0.6rem 1.2rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-danger-custom:hover {
+            background-color: #dc2626;
+            transform: translateY(-1px);
+        }
+
+        /* Alert styles */
+        .alert {
+            border-radius: 8px;
+            border: 1px solid transparent;
+        }
+
+        /* Mobile navbar settings */
+        .mobile-header {
+            display: none;
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 101;
+        }
+
+        @media (max-width: 991.98px) {
+            .sidebar {
+                margin-left: -250px;
+            }
+            .sidebar.active {
+                margin-left: 0;
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 1.2rem;
+            }
+            .mobile-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    {% if user.is_authenticated %}
+    <!-- Desktop Sidebar -->
+    <aside class="sidebar" id="sidebarMenu">
+        <div class="px-4 mb-4 pb-3 border-b border-secondary-subtle border-opacity-10 text-center">
+            <h4 class="font-bold text-white mb-0" style="letter-spacing: 0.5px;">
+                <i class="fa-solid fa-wallet text-success me-2"></i>FinAlytica
+            </h4>
+            <span class="text-xs text-muted">Pro Budget Management</span>
+        </div>
+        <nav class="nav flex-column">
+            <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
+                <i class="fa-solid fa-chart-pie"></i>Dashboard
+            </a>
+            <a class="nav-link {% if 'expense' in request.path %}active{% endif %}" href="{% url 'expense_list' %}">
+                <i class="fa-solid fa-receipt"></i>Expenses
+            </a>
+            <a class="nav-link {% if 'income' in request.path %}active{% endif %}" href="{% url 'income_list' %}">
+                <i class="fa-solid fa-money-bill-trend-up"></i>Income
+            </a>
+            <a class="nav-link {% if request.resolver_match.url_name == 'budget_settings' %}active{% endif %}" href="{% url 'budget_settings' %}">
+                <i class="fa-solid fa-wallet"></i>Budget limits
+            </a>
+            <a class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}" href="{% url 'profile' %}">
+                <i class="fa-solid fa-user-gear"></i>Settings
+            </a>
+            <hr class="mx-3 my-3" style="border-color: var(--border-color);">
+            <a class="nav-link text-danger" href="{% url 'logout' %}">
+                <i class="fa-solid fa-right-from-bracket"></i>Log Out
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Mobile Header -->
+    <header class="mobile-header">
+        <h4 class="font-bold text-white mb-0">
+            <i class="fa-solid fa-wallet text-success me-2"></i>FinAlytica
+        </h4>
+        <button class="btn btn-outline-light btn-sm" id="sidebarToggle">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+    </header>
+    {% endif %}
+
+    <!-- Main Content Container -->
+    <main class="{% if user.is_authenticated %}main-content{% else %}container my-auto py-5{% endif %}">
+        {% if messages %}
+            <div class="container-fluid px-0">
+                {% for message in messages %}
+                    <div class="alert {% if message.tags == 'error' %}alert-danger bg-danger bg-opacity-10 text-danger border-danger border-opacity-20{% else %}alert-success bg-success bg-opacity-10 text-success border-success border-opacity-20{% endif %} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Bootstrap 5 Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Simple script for toggling the sidebar on mobile devices
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebarMenu = document.getElementById('sidebarMenu');
+        if (sidebarToggle && sidebarMenu) {
+            sidebarToggle.addEventListener('click', () => {
+                sidebarMenu.classList.toggle('active');
+            });
+        }
+    </script>
+</body>
+</html>

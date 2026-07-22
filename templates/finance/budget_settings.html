@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}Budget Limits{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h3 class="text-white font-bold mb-1">Monthly Budgeting</h3>
+        <p class="text-muted small mb-0">Configure spending caps to manage your savings efficiently.</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-5 mb-4 mb-md-0">
+        <div class="card-custom">
+            <h5 class="text-white font-bold mb-4">
+                <i class="fa-solid fa-wallet text-success me-2"></i>Configure Budget Limit
+            </h5>
+            
+            <form method="post">
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger bg-danger bg-opacity-10 text-danger border-danger border-opacity-20 py-2 small" role="alert">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="mb-3">
+                    <label for="id_month" class="form-label text-muted small uppercase font-semibold">Month</label>
+                    {{ form.month }}
+                    {% if form.month.errors %}
+                        <div class="text-danger small mt-1" style="font-size: 0.8rem;">
+                            {% for error in form.month.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_year" class="form-label text-muted small uppercase font-semibold">Year</label>
+                    {{ form.year }}
+                    {% if form.year.errors %}
+                        <div class="text-danger small mt-1" style="font-size: 0.8rem;">
+                            {% for error in form.year.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    <label for="id_budget" class="form-label text-muted small uppercase font-semibold">Budget Limit ({{ user.profile.currency }})</label>
+                    {{ form.budget }}
+                    {% if form.budget.errors %}
+                        <div class="text-danger small mt-1" style="font-size: 0.8rem;">
+                            {% for error in form.budget.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-success-custom w-100 py-2.5">
+                    Save Budget Limit
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="col-md-7">
+        <div class="card-custom">
+            <h5 class="text-white font-bold mb-4">
+                <i class="fa-solid fa-clock-rotate-left text-primary me-2"></i>Historical Budgets
+            </h5>
+            
+            {% if budgets %}
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr class="text-muted small uppercase font-semibold">
+                                <th>Period</th>
+                                <th class="text-end">Budget Limit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for b in budgets %}
+                                <tr>
+                                    <td class="text-white font-semibold">
+                                        {% if b.month == 1 %}January{% elif b.month == 2 %}February{% elif b.month == 3 %}March{% elif b.month == 4 %}April{% elif b.month == 5 %}May{% elif b.month == 6 %}June{% elif b.month == 7 %}July{% elif b.month == 8 %}August{% elif b.month == 9 %}September{% elif b.month == 10 %}October{% elif b.month == 11 %}November{% elif b.month == 12 %}December{% endif %} {{ b.year }}
+                                    </td>
+                                    <td class="text-end text-white font-bold">
+                                        {{ user.profile.currency }} {{ b.budget }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="fa-solid fa-sack-xmark fs-2 mb-3"></i>
+                    <p class="small mb-0">No historical budgets configured yet.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

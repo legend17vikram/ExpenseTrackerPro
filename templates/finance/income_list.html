@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Income Management{% endblock %}
+
+{% block content %}
+<div class="row align-items-center mb-4">
+    <div class="col-md-6">
+        <h3 class="text-white font-bold mb-1">Income Tracker</h3>
+        <p class="text-muted small mb-0">Record and monitor your sources of cash inflows.</p>
+    </div>
+    <div class="col-md-6 text-md-end mt-3 mt-md-0">
+        <a href="{% url 'income_create' %}" class="btn btn-success-custom">
+            <i class="fa-solid fa-plus me-1.5"></i>Log Income
+        </a>
+    </div>
+</div>
+
+<div class="card-custom">
+    {% if incomes %}
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr class="text-muted small uppercase font-semibold">
+                        <th>Date</th>
+                        <th>Source</th>
+                        <th>Description</th>
+                        <th class="text-end">Amount</th>
+                        <th class="text-end" style="width: 150px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for inc in incomes %}
+                        <tr>
+                            <td>{{ inc.date|date:"M d, Y" }}</td>
+                            <td class="font-semibold text-white">{{ inc.source }}</td>
+                            <td class="text-muted small">{{ inc.description|default:"-" }}</td>
+                            <td class="text-end text-success font-bold">
+                                +{{ user.profile.currency }} {{ inc.amount }}
+                            </td>
+                            <td class="text-end">
+                                <a href="{% url 'income_update' inc.pk %}" class="btn btn-sm btn-outline-primary me-1 py-1 px-2.5">
+                                    <i class="fa-solid fa-pencil"></i>
+                                </a>
+                                <a href="{% url 'income_delete' inc.pk %}" class="btn btn-sm btn-outline-danger py-1 px-2.5">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <div class="mb-3 text-muted">
+                <i class="fa-solid fa-money-bills fs-1"></i>
+            </div>
+            <h5 class="text-white font-bold mb-1">No Incomes Logged Yet</h5>
+            <p class="text-muted small">Record your salary, freelance gigs, or dividends to track your cash inflows.</p>
+            <a href="{% url 'income_create' %}" class="btn btn-success-custom btn-sm mt-2 px-3">
+                Log Your First Income
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

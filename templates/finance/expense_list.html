@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}Expense Management{% endblock %}
+
+{% block content %}
+<div class="row align-items-center mb-4">
+    <div class="col-md-6">
+        <h3 class="text-white font-bold mb-1">Expense Tracker</h3>
+        <p class="text-muted small mb-0">Record and filter your spending activities.</p>
+    </div>
+    <div class="col-md-6 text-md-end mt-3 mt-md-0">
+        <a href="{% url 'export_expenses_csv' %}" class="btn btn-outline-primary me-2 border border-primary border-opacity-25" style="padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600; color: var(--secondary-blue); border-color: rgba(59, 130, 246, 0.2) !important;">
+            <i class="fa-solid fa-file-csv me-1.5"></i>Export CSV
+        </a>
+        <a href="{% url 'expense_create' %}" class="btn btn-danger-custom" style="background-color: var(--danger-red);">
+            <i class="fa-solid fa-plus me-1.5"></i>Log Expense
+        </a>
+    </div>
+</div>
+
+<!-- Search & Filtering Toolbar -->
+<div class="card-custom mb-4">
+    <form method="get" class="row g-3">
+        <div class="col-md-3">
+            <label for="search" class="form-label text-muted small uppercase font-semibold">Search Keywords</label>
+            <input type="text" name="search" id="search" class="form-control" placeholder="Search description..." value="{{ search_query }}">
+        </div>
+        <div class="col-md-3">
+            <label for="category" class="form-label text-muted small uppercase font-semibold">Category</label>
+            <select name="category" id="category" class="form-select">
+                <option value="">All Categories</option>
+                {% for cat in categories %}
+                    <option value="{{ cat.id }}" {% if selected_category == cat.id|stringformat:"i" %}selected{% endif %}>{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label for="start_date" class="form-label text-muted small uppercase font-semibold">From Date</label>
+            <input type="date" name="start_date" id="start_date" class="form-control" value="{{ start_date }}">
+        </div>
+        <div class="col-md-2">
+            <label for="end_date" class="form-label text-muted small uppercase font-semibold">To Date</label>
+            <input type="date" name="end_date" id="end_date" class="form-control" value="{{ end_date }}">
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-success-custom w-100 me-2" style="background-color: var(--secondary-blue);">
+                <i class="fa-solid fa-filter me-1.5"></i>Filter
+            </button>
+            <a href="{% url 'expense_list' %}" class="btn btn-outline-secondary w-100 border border-secondary border-opacity-25" style="border-radius: 8px;">
+                Reset
+            </a>
+        </div>
+    </form>
+</div>
+
+<div class="card-custom">
+    {% if expenses %}
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr class="text-muted small uppercase font-semibold">
+                        <th>Date</th>
+                        <th>Category</th>
+                        <th>Description</th>
+                        <th>Payment Method</th>
+                        <th class="text-end">Amount</th>
+                        <th class="text-end" style="width: 150px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for exp in expenses %}
+                        <tr>
+                            <td>{{ exp.date|date:"M d, Y" }}</td>
+                            <td>
+                                <span class="badge bg-opacity-10 px-2.5 py-1.5 border" style="background-color: rgba(59, 130, 246, 0.1); color: var(--secondary-blue); border-color: rgba(59, 130, 246, 0.2);">
+                                    <i class="fa-solid {{ exp.category.icon|default:'fa-tag' }} me-1.5"></i>{{ exp.category.name|default:"Uncategorized" }}
+                                </span>
+                            </td>
+                            <td class="text-white font-medium">{{ exp.description|default:"-" }}</td>
+                            <td class="text-muted small">
+                                <i class="fa-regular fa-credit-card me-1.5"></i>{{ exp.payment_method }}
+                            </td>
+                            <td class="text-end text-danger font-bold">
+                                -{{ user.profile.currency }} {{ exp.amount }}
+                            </td>
+                            <td class="text-end">
+                                <a href="{% url 'expense_update' exp.pk %}" class="btn btn-sm btn-outline-primary me-1 py-1 px-2.5">
+                                    <i class="fa-solid fa-pencil"></i>
+                                </a>
+                                <a href="{% url 'expense_delete' exp.pk %}" class="btn btn-sm btn-outline-danger py-1 px-2.5">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <div class="mb-3 text-muted">
+                <i class="fa-solid fa-wallet fs-1"></i>
+            </div>
+            <h5 class="text-white font-bold mb-1">No Expenses Logged</h5>
+            <p class="text-muted small">No expenses match your current filters. Clear your filters or log a new spending item.</p>
+            <a href="{% url 'expense_create' %}" class="btn btn-danger-custom btn-sm mt-2 px-3">
+                Log New Expense
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

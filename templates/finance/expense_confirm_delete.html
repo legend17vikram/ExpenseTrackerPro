@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Expense{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card-custom text-center py-5">
+            <div class="mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center bg-danger bg-opacity-10 border border-danger border-opacity-20 rounded-circle" style="width: 70px; height: 70px;">
+                    <i class="fa-solid fa-circle-exclamation text-danger fs-2"></i>
+                </div>
+            </div>
+            <h3 class="text-white font-bold mb-1">Delete Expense Entry</h3>
+            <p class="text-muted small mb-4">Are you sure you want to permanently delete this expense entry?</p>
+
+            <div class="p-3 bg-slate bg-opacity-50 border border-secondary border-opacity-10 rounded-lg text-start mb-4">
+                <table class="table table-borderless text-muted small mb-0">
+                    <tbody>
+                        <tr>
+                            <td class="ps-0 font-semibold text-white">Category:</td>
+                            <td>
+                                <span class="badge bg-opacity-10 px-2.5 py-1 border" style="background-color: rgba(59, 130, 246, 0.1); color: var(--secondary-blue); border-color: rgba(59, 130, 246, 0.2);">
+                                    {{ expense.category.name|default:"Uncategorized" }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="ps-0 font-semibold text-white">Description:</td>
+                            <td>{{ expense.description|default:"-" }}</td>
+                        </tr>
+                        <tr>
+                            <td class="ps-0 font-semibold text-white">Amount:</td>
+                            <td class="text-danger font-bold">-{{ user.profile.currency }} {{ expense.amount }}</td>
+                        </tr>
+                        <tr>
+                            <td class="ps-0 font-semibold text-white">Date:</td>
+                            <td>{{ expense.date|date:"F d, Y" }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger-custom px-4">
+                    Yes, Delete Entry
+                </button>
+                <a href="{% url 'expense_list' %}" class="btn btn-outline-secondary btn-sm ms-2 px-3 border border-secondary border-opacity-25" style="padding: 0.6rem 1.2rem; border-radius: 8px;">
+                    Cancel
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
