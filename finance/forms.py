@@ -61,7 +61,7 @@ class ExpenseForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Sort categories alphabetically
-        self.fields['category'].queryset = Category.objects.all().order_name = Category.objects.all().order_by('name')
+        self.fields['category'].queryset = Category.objects.all().order_by('name')
         self.fields['category'].empty_label = "Select Category"
 
     def clean_amount(self):
