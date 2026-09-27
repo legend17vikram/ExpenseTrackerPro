@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: finalytica
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn expensetracker.wsgi:application"
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: PYTHON_VERSION
+        value: "3.11.0"
