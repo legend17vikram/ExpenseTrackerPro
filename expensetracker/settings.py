@@ -22,10 +22,12 @@ ALLOWED_HOSTS = ['*']
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 CSRF_TRUSTED_ORIGINS = [
+    'https://expensetrackerpro-n3b6.onrender.com',
     'https://*.onrender.com',
     'http://localhost',
     'http://127.0.0.1',
 ]
+
 
 
 
